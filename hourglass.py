@@ -1,4 +1,9 @@
-import curses,re,sys,time
+import curses,re,sys,time,argparse
+
+parser = argparse.ArgumentParser(description="timer setup options")
+parser.add_argument("time",type=float,help="Timer length")
+parser.add_argument("--size","-s",type=int,default=25,help="Size of the hourglass")
+parser.add_argument("--debug",action="store_true",help="Debug Mode")
 
 class Hourglass:
     def __init__(self,timer,size=25,grain="*",debug=0):
@@ -7,8 +12,8 @@ class Hourglass:
         self.grain = grain
         self.debug = debug
         self.methods()
-        self.build_glass()
         self.setup_display()
+        self.build_glass()
         self.start()
     #
     def build_glass(self):
@@ -39,17 +44,25 @@ class Hourglass:
     #
     def setup_display(self):
         self.scr = curses.initscr()
+        maxy = self.scr.getmaxyx()[0] - 4
+        if not maxy%2:
+            maxy = maxy-1
+        if self.debug:
+            maxy = maxy-2
+        self.N = min([maxy,self.N])
         self.scr.border(0)
         self.scr.addstr(1,1,self.ucap(self.N).format(*["=" for i in range(self.N-2)]))
         self.scr.addstr(2+self.N,1,self.lcap(self.N).format(*["=" for i in range(self.N-2)]))
-        if self.debug:
-            self.scr.addstr(self.N+4,1,"{},{},{},{}".format(self.N,self.K,self.J,len(self.fill)))
     #
     def start(self):
-        self.sleep = self.timer/self.K
+        self.sleep = self.timer/float(self.K)
         t0 = time.time()
         i = 0
-        while time.time()<=t0+self.timer:
+        if self.debug:
+            self.scr.addstr(self.N+4,1,"{},{},{},{},{},{}".format(self.N,self.K,self.J,\
+                                                                  len(self.fill),\
+                                                                  *self.scr.getmaxyx()))
+        for i in range(self.K):
             time.sleep(self.sleep)
             self.tick(i)
             self.display()
@@ -80,7 +93,8 @@ class Hourglass:
         self.center = lambda y: " "*y+"||{}||"
 
 if __name__=="__main__":
-    hg = Hourglass(30)
+    args = parser.parse_args()
+    hg = Hourglass(args.time,size=args.size,debug=args.debug)
     #hg.scr.refresh()
     #hg.scr.getch()
     #curses.endwin()
