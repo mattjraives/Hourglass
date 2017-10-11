@@ -3,6 +3,7 @@ import curses,re,sys,time,argparse
 parser = argparse.ArgumentParser(description="timer setup options")
 parser.add_argument("time",type=float,help="Timer length")
 parser.add_argument("--size","-s",type=int,default=25,help="Size of the hourglass")
+parser.add_argument("--max",action="store_true",help="set hourglass size to maximum")
 parser.add_argument("--debug",action="store_true",help="Debug Mode")
 
 class Hourglass:
@@ -44,12 +45,12 @@ class Hourglass:
     #
     def setup_display(self):
         self.scr = curses.initscr()
-        maxy = self.scr.getmaxyx()[0] - 4
-        if not maxy%2:
-            maxy = maxy-1
+        winsize = min(self.scr.getmaxyx()) - 4
+        if not winsize%2:
+            winsize = winsize-1
         if self.debug:
-            maxy = maxy-2
-        self.N = min([maxy,self.N])
+            winsize = winsize-2
+        self.N = min([winsize,self.N])
         self.scr.border(0)
         self.scr.addstr(1,1,self.ucap(self.N).format(*["=" for i in range(self.N-2)]))
         self.scr.addstr(2+self.N,1,self.lcap(self.N).format(*["=" for i in range(self.N-2)]))
@@ -94,6 +95,8 @@ class Hourglass:
 
 if __name__=="__main__":
     args = parser.parse_args()
+    if args.max:
+        args.size=999999
     hg = Hourglass(args.time,size=args.size,debug=args.debug)
     #hg.scr.refresh()
     #hg.scr.getch()
