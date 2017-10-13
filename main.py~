@@ -1,0 +1,19 @@
+import argparse
+from screen import Screen
+
+parser = argparse.ArgumentParser(description="timer setup options")
+parser.add_argument("time",type=float,help="Timer length")
+parser.add_argument("--size","-s",type=int,default=25,help="Size of the hourglass")
+parser.add_argument("--max",action="store_true",help="set hourglass size to maximum")
+
+if __name__=="__main__":
+    try:
+        screen = Screen()
+        if args.max:
+            args.size=min(screen.scr.getmaxyx())-5
+            screen.add_window(1,1,args.size,args.size/2,"hourglass")
+            glass = Hourglass(args.time,size=args.size)
+            glass.start(screen.windows["hourglass"])
+            glass.stop(screen.windows["hourglass"])
+    except:
+        screen.exit()
